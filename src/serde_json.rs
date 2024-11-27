@@ -16,17 +16,21 @@ use alloc::vec::Vec;
 #[non_exhaustive]
 pub struct SerJsonState {
     pub out: String,
+    pub pretty: bool,
 }
 
 impl SerJsonState {
-    pub fn new(out: String) -> Self {
-        Self { out }
+    pub fn new(out: String, pretty: bool) -> Self {
+        Self { out, pretty }
     }
 
-    pub fn indent(&mut self, _d: usize) {
-        //for _ in 0..d {
-        //    self.out.push_str("    ");
-        //}
+    pub fn indent(&mut self, d: usize) {
+        if self.pretty {
+            self.out.push_str("\n");
+            for _ in 0..d {
+                self.out.push_str("    ");
+            }
+        }
     }
 
     pub fn field(&mut self, d: usize, field: &str) {
@@ -63,7 +67,22 @@ pub trait SerJson {
     ///
     /// This is a convenient wrapper around `ser_json`.
     fn serialize_json(&self) -> String {
-        let mut s = SerJsonState { out: String::new() };
+        let mut s = SerJsonState {
+            out: String::new(),
+            pretty: false,
+        };
+        self.ser_json(0, &mut s);
+        s.out
+    }
+
+    /// Serialize Self to a JSON string, but with indentations.
+    ///
+    /// This is a convenient wrapper around `ser_json`.
+    fn serialize_json_pretty(&self) -> String {
+        let mut s = SerJsonState {
+            out: String::new(),
+            pretty: true,
+        };
         self.ser_json(0, &mut s);
         s.out
     }
